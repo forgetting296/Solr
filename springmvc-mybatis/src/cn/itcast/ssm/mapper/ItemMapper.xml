@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.itcast.ssm.mapper.ItemMapper">
+	
+	<resultMap type="" id="" >
+		
+	</resultMap>
+	
+	<select id="queryItemList" resultType="Item">
+		select * from items
+	</select>
+	
+	<select id="queryItemById" parameterType="Integer" resultType="Item" >
+		select * from items where id = #{id}
+	</select>
+	
+	<update id="updateItem" parameterType="Item" >
+		update items
+		<set>
+			<if test="name != null and name != ''">
+				name = #{name},
+			</if>
+			<if test="price != null">
+				price = #{price},
+			</if>
+			<if test="detail != null and detail != ''">
+				detail = #{detail},
+			</if>
+			<!-- set标签  可以去掉多余的， -->
+			<if test="createtime != null">
+				createtime = #{createtime}
+			</if>
+		</set>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+</mapper>
