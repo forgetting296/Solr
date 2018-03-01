@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/icon.css">
+	<script type="text/javascript" src="../js/jquery-1.8.3.js"></script>
+	<script type="text/javascript" src="../js/easyui/jquery.easyui.min.js"></script>
+	<link rel="stylesheet" href="../js/ztree/zTreeStyle.css" type="text/css">
+	<script type="text/javascript" src="../js/ztree/jquery.ztree.all-3.5.js"></script>
+	<script type="text/javascript">
+		function addTab(title,url){
+			var $tab = $('#tabs').tabs('getTab',title);
+			if($tab){
+				 $('#tabs').tabs('select',title);
+				 return;
+			}else{
+				$('#tabs').tabs('add',{    
+				    title:title,    
+				    content:"<iframe src="+url+" width = '98.5%' height='98%'></iframe>",    
+				    closable:true,    
+				    tools:[{    
+				        iconCls:'icon-reload',    
+				        handler:function(){    
+				        	var selectTab = $('#tabs').tabs('getSelected');  // 获取选择的面板
+				        	$('#tabs').tabs('update', {
+				        		tab: selectTab,
+				        		options: {}
+				        	});
+				        }    
+				    }]    
+				});  
+			}
+		}
+		
+		var setting = {
+			data: {
+				simpleData: {
+					enable: true
+				}
+			},
+			callback:{
+				onClick:onClick
+			}
+		};
+		
+		
+		
+		
+		function onClick(event, treeId, treeNode, clickFlag) {
+			if(!treeNode.page){
+				return;
+			}
+			addTab(treeNode.name,"../"+treeNode.page);
+		}
+		
+		$(document).ready(function(){
+			var url = "../data/menu.json";
+			$.post(url,{},function(data){
+				$.fn.zTree.init($("#treeMenu"), setting, data);
+			},"json");
+		}); 
+	</script>
+</head>
+<body>
+	<div id="cc" class="easyui-layout" fit = "true">   
+	    <div data-options="region:'north',border:'false'" style="height:70px;padding:10px;">
+	    	<div>
+	    		<img alt="" src="../images/logo.png" border="0">
+	    	</div>
+    		<div style="position: absolute; right: 5px; bottom: 10px; ">
+				<a href="javascript:void(0)" class="easyui-menubutton" data-options="menu:'#mm2',iconCls:'icon-ok'">更换皮肤</a>
+				<a href="javascript:void(0)" class="easyui-menubutton" data-options="menu:'#mm1',iconCls:'icon-help'">控制面板</a>
+			</div>
+			<div id="mm2" style="width:100px;">
+				<div onclick="">default</div>
+				<div onclick="">gray</div>
+				<div onclick="">black</div>
+				<div onclick="">bootstrap</div>
+				<div onclick="">metro</div>
+			</div>
+			<div id="mm1" style="width:150px;">
+				<div data-options="iconCls:'icon-edit'" onclick="">修改密码</div>
+				<div onclick="">联系管理员</div>
+				<div class="menu-sep"></div>
+				<div onclick="">退出系统</div>
+			</div>
+	    </div>   
+	    <div data-options="region:'south',title:'South Title',split:true" style="height:100px;"></div>   
+	    <div data-options="region:'west',title:'菜单导航',split:true" style="width:200px;">
+	    	<div id="accordin" class="easyui-accordion" fit="true" border="false">   
+			    <div title="基本功能" data-options="iconCls:'icon-mini-add',selected:true" style="overflow:auto;padding:10px;">   
+			         <!-- <a href="javascript:void(0)" onclick="addTab('点我','../pages/base/standard.html')">点我</a> -->
+			         <div class="zTreeDemoBackground left">
+						<ul id="treeMenu" class="ztree"></ul>
+					</div>
+			    </div>   
+			    <div title="系统管理" data-options="iconCls:'icon-mini-add'" style="padding:10px;">   
+			          
+			    </div>   
+			</div>  
+	    </div>   
+	    <div data-options="region:'center',title:''" style="padding:5px;background:#eee;">
+	    	<div class="easyui-tabs" fit="true" id="tabs">
+			</div>
+	    </div>   
+	</div>  
+</body>
+</html>

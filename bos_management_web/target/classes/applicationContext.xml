@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:jaxws="http://cxf.apache.org/jaxws"
+	xmlns:soap="http://cxf.apache.org/bindings/soap"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans-4.2.xsd 
+						http://www.springframework.org/schema/context 
+						http://www.springframework.org/schema/context/spring-context-4.2.xsd 
+						http://www.springframework.org/schema/aop 
+						http://www.springframework.org/schema/aop/spring-aop-4.2.xsd 
+						http://www.springframework.org/schema/tx 
+						http://www.springframework.org/schema/tx/spring-tx-4.2.xsd 
+						http://www.springframework.org/schema/data/jpa 
+						http://www.springframework.org/schema/data/jpa/spring-jpa.xsd 
+						http://cxf.apache.org/bindings/soap 
+						http://cxf.apache.org/schemas/configuration/soap.xsd
+						http://cxf.apache.org/jaxws 
+						http://cxf.apache.org/schemas/jaxws.xsd">
+	
+	<!-- 注解扫描包 -->
+	<context:component-scan base-package="cn.itcast"></context:component-scan>
+
+	<!-- 配置连接池 -->
+		<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="oracle.jdbc.driver.OracleDriver" />
+		<property name="jdbcUrl" value="jdbc:oracle:thin:@192.168.66.253:1521:ORCL" />
+		<property name="user" value="forgetting" />
+		<property name="password" value="forgetting" />
+	</bean>
+	
+	<!-- 配置sessionFactory -->
+			<!-- 注入c3p0连接池 -->
+			<!-- 指定扫描哪个实体包注解 -->
+			<!-- hibernate键值对属性 -->
+			<!-- 必选配置(1个) -->
+			<!-- 指定数据库方言
+					 		oracle:org.hibernate.dialect.Oracle10gDialect
+					 		mysql:org.hibernate.dialect.MySQLDialect
+			-->
+		<!-- <bean name="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean" >
+			<property name="dataSource" ref="dataSource" ></property>
+			<property name="packagesToScan" value="cn.itcast.bos.domain"></property>
+			<property name="hibernateProperties">
+				<props>
+					<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+					 <prop key="hibernate.show_sql">true</prop>
+					 <prop key="hibernate.format_sql">true</prop>
+					 <prop key="hibernate.hbm2ddl.auto">update</prop>
+				</props>
+			</property>
+		</bean> -->
+		
+<!-- spring整合JPA -->
+	<bean id="entityManagerFactory"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="packagesToScan" value="cn.itcast.bos.domain" />
+		<!-- 指定持久层提供者为Hibernate -->
+		<property name="persistenceProvider">
+			<bean class="org.hibernate.ejb.HibernatePersistence" />
+		</property>
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>
+		</property>
+		<property name="jpaDialect">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaDialect" />
+		</property>
+		<!-- 指定hibernate配置属性 -->
+		<property name="jpaProperties">
+            <props>
+            	<!-- 指定库名(MYSQL)|用户名(itcast) -->
+            	<prop key="hibernate.default_schema">forgetting</prop>
+                <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.hbm2ddl.auto">none</prop>
+                <prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop>
+            </props>
+		</property>
+	</bean>
+		
+		<!-- 配置事务管理器(Hibernate平台) -->
+		<!-- <bean name="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager" >
+			<property name="sessionFactory" ref="sessionFactory" ></property>
+		</bean> -->
+		<!-- 事务管理器(JPA平台) -->
+		<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+			<property name="entityManagerFactory" ref="entityManagerFactory" />
+		</bean>
+		
+		<!-- 注解管理事务开关     配置了proxy-target-class为true  是表示使用cglib的动态代理技术-->
+		<!-- shiro的AuthorizationAttributeSourceAdvisor规定使用cglib代理  proxy和cglib不能混用   相对来说  cglib不能产生代理的只有被final修饰的类   比实现接口方便 -->
+		<tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true" />
+		
+		<!-- 整合 spring data jpa
+				指定dao接口放置在哪个包下
+		 -->
+		<jpa:repositories base-package="cn.itcast.bos.dao" />
+		
+		<jaxws:client id="customerService" address="http://localhost:8081/crm/service/customer" serviceClass="cn.itcast.crm.service.CustomerServiceImpl"></jaxws:client>
+		
+		<jaxws:server address="/order" >
+		<jaxws:serviceBean>
+			<ref bean="orderService" />
+		</jaxws:serviceBean>
+	</jaxws:server>
+	<!-- ========================================================================================== -->
+	
+	<!-- 注册缓存管理器对象 -->
+	<!-- <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+		<property name="cacheManagerConfigFile" value="classpath:ehcache.xml"/>
+	</bean> -->
+	
+    <!-- shiro配置：securityManager -->
+    <bean name="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager" >
+		<property name="realm" ref="myRealm" ></property>
+		<!-- <property name="cacheManager" ref="cacheManager"></property> -->
+	</bean>
+    <!-- 配置shiro核心过滤器 -->
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<!-- 安全管理器 -->
+		<property name="securityManager" ref="securityManager" />
+		<!-- 未认证，跳转到哪个页面  登陆界面(1类资源) -->
+		<property name="loginUrl" value="/login.html" />
+		<!-- -->
+		<!-- <property name="successUrl" value="/index.html" /> -->
+		<!-- 认证后，没有权限跳转页面 -->
+		<property name="unauthorizedUrl" value="/error/unauthorized.html" />
+		<!-- shiro URL控制过滤器规则 -->
+		<!-- 指定1|2|3类资源
+				访问/UserAction_login.action路径时.由anon过滤器来过滤=>1类资源
+					/UserAction_login.action = anon 
+				访问/pages/base/courier.html页面资源时,需要名为courier的权限 => 3类资源
+					/pages/base/courier.html = perms[courier]
+				除了刚才配置的1类|3类资源以外的其他所有路径都属于2类资源
+					/** = authc
+					配置/**是指多级目录    /*是指单级目录
+		 -->
+		<property name="filterChainDefinitions"  >
+			<value>
+				/demo/API_cn.html = anon
+				/UserAction_login.action = anon
+				/validatecode.jsp* = anon
+				/css/** = anon
+				/js/** = anon
+				/images/** = anon
+				<!-- /pages/base/courier.html = perms[courier] -->
+				/** = authc
+			</value>
+		</property>
+	</bean>
+	
+	<!-- shiro权限通知 -->
+	<bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor" >
+		<property name="securityManager" ref="securityManager" ></property>
+	</bean>
+	
+	<!-- 配置自动织入工具类(springAOP)
+			将该类配置到容器中,该类就会自动从容器中查找Advisor对象完成自动织入(代理)
+	 -->
+	<bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" >
+		<!-- 指定默认使用cglib代理
+				shiro的AuthorizationAttributeSourceAdvisor规定使用cglib代理
+				前置通知  在访问资源之前进行权限的校验
+		 -->
+		<property name="proxyTargetClass" value="true" ></property>
+	</bean>
+	
+	<!-- ======================================================================================== -->
+	<!-- 注册jobDetail对象，负责通过反射调用自定义的Job中的方法 -->
+	<bean id="jobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<!-- 指定哪个对象   @Service("myQuartz")  中定义好的 -->
+		<property name="targetObject" ref="myQuartz"></property>
+		<!-- 指定定时器中的方法  -->
+		<property name="targetMethod" value="xxx"></property>
+	</bean>
+	<!-- 注册触发器   指定触发时间 -->
+	<bean id="myTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<!-- 绑定jobDetail对象 -->
+		<property name="jobDetail" ref="jobDetail"></property>
+		<!-- 绑定corn表达式 -->
+		<property name="cronExpression">
+			<value>0 0 8 ? * * *</value>
+		</property>
+	</bean>
+	<!-- 配置统一调度工厂 -->
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<!-- 触发器    可以配置多个 -->
+		
+		<property name="triggers">
+			<list>
+				<ref bean="myTrigger"/>
+			</list>
+		</property>
+		
+	</bean>
+	<!-- ======================================================================================== -->
+</beans>

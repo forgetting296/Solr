@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+<struts>
+	<!-- 启用开发者模式 -->
+	<constant name="struts.devMode" value="true"></constant>
+	<package name="basePackage" abstract="true" extends="struts-default" namespace="/">
+		<global-results>
+			<!-- 配置错误页面 -->
+			<result name="error">/error2.jsp</result>
+		</global-results>
+		<!-- struts2全局异常处理方式   globalExceptionMappings全局异常映射 -->
+		<global-exception-mappings>
+			<!-- 异常映射  (当然了  error1和error2的错误页面还是要单独配置的)
+				
+				这种配置方式可以捕获不同的异常   指定其跳转到指定的页面
+				
+				用户名错误异常   出现这个异常   会跳转到error1对应的错误提示页面
+				<exception-mapping result="error1" exception="org.apache.shiro.authc.UnknownAccountException"></exception-mapping>
+				密码错误异常     出现这个异常   会跳转到error2对应的错误提示页面
+				<exception-mapping result="error2" exception="org.apache.shiro.authc.IncorrectCredentialsException"></exception-mapping>
+			 -->
+			<!-- 这种配置是只要出现异常Exception   就会跳转到error对应的错误页面 -->
+			<exception-mapping result="error" exception="java.lang.Exception"></exception-mapping>
+		</global-exception-mappings>
+	
+	</package>
+</struts>
